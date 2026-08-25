@@ -1,0 +1,51 @@
+services:
+  db:
+    image: postgres:15
+    volumes:
+      - postgres_data:/var/lib/postgresql/data
+    environment:
+      POSTGRES_USER: postgres
+      POSTGRES_PASSWORD: password
+      POSTGRES_DB: ig_saas_development
+    ports:
+      - "5433:5432"
+
+  web:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bash -c "rm -f tmp/pids/server.pid && bundle install && bundle exec rails db:prepare && bundle exec rails server -b 0.0.0.0"
+    volumes:
+      - .:/rails
+      - bundle_data:/usr/local/bundle
+    ports:
+      - "3000:3000"
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/ig_saas_development
+      - RAILS_ENV=development
+    depends_on:
+      - db
+    extra_hosts:
+      - "host.docker.internal:host-gateway"
+
+  worker:
+    build:
+      context: .
+      dockerfile: Dockerfile.dev
+    command: bash -c "bundle install && bundle exec rake solid_queue:start"
+    volumes:
+      - .:/rails
+      - bundle_data:/usr/local/bundle
+    env_file:
+      - .env
+    environment:
+      - DATABASE_URL=postgres://postgres:password@db:5432/ig_saas_development
+      - RAILS_ENV=development
+    depends_on:
+      - db
+
+volumes:
+  postgres_data:
+  bundle_data:
