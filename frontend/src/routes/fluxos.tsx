@@ -140,7 +140,10 @@ function Flows() {
       const url = editingId === "new" ? "/flows" : `/flows/${editingId}`;
       const method = editingId === "new" ? "POST" : "PATCH";
       const res = await authFetch(url, { method, body: JSON.stringify(basePayload) });
-      if (!res.ok) throw new Error("Falha ao salvar fluxo");
+      if (!res.ok) {
+        const data = await res.json().catch(() => ({}));
+        throw new Error(data.errors?.join(", ") ?? "Falha ao salvar fluxo");
+      }
       const saved: FlowResource = await res.json();
 
       // 2a etapa: agora que os passos tem id real, resolve "vai para o passo N"
@@ -366,6 +369,10 @@ function Flows() {
                       onChange={(e) => updateStep(i, { message_text: e.target.value })}
                       required
                     />
+                    <p className="mt-1 text-xs text-muted-foreground">
+                      Use <code className="rounded bg-muted px-1 py-0.5">{"{{nome}}"}</code> pra puxar o
+                      @usuário de quem está conversando.
+                    </p>
 
                     {step.step_type === "collect_text" ? (
                       <div className="mt-2 space-y-1.5">
@@ -424,6 +431,10 @@ function Flows() {
                   <Plus /> Adicionar passo
                 </Button>
               </div>
+
+              {saveMutation.isError && (
+                <p className="text-sm text-destructive">{(saveMutation.error as Error).message}</p>
+              )}
 
               <div className="flex gap-2">
                 <Button variant="brand" type="submit" className="flex-1" disabled={saveMutation.isPending}>

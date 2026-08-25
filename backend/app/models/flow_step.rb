@@ -8,4 +8,14 @@ class FlowStep < ApplicationRecord
 
   validates :message_text, presence: true
   validates :field_name, presence: true, if: :collect_text?
+  validate :quick_replies_have_options
+
+  private
+
+  def quick_replies_have_options
+    return unless quick_replies?
+
+    has_option = flow_step_options.any? { |o| !o.marked_for_destruction? }
+    errors.add(:flow_step_options, "precisa ter pelo menos um botão") unless has_option
+  end
 end

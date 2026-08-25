@@ -15,7 +15,7 @@ class FlowsController < ApplicationController
     if flow.save
       render json: flow_json(flow), status: :created
     else
-      render json: { errors: flow.errors.full_messages }, status: :unprocessable_content
+      render json: { errors: nested_errors(flow) }, status: :unprocessable_content
     end
   end
 
@@ -23,7 +23,7 @@ class FlowsController < ApplicationController
     if @flow.update(flow_params)
       render json: flow_json(@flow)
     else
-      render json: { errors: @flow.errors.full_messages }, status: :unprocessable_content
+      render json: { errors: nested_errors(@flow) }, status: :unprocessable_content
     end
   end
 
@@ -46,6 +46,15 @@ class FlowsController < ApplicationController
           flow_step_options_attributes: [ [ :id, :label, :position, :next_step_id, :_destroy ] ] ]
       ]
     ])
+  end
+
+  # accepts_nested_attributes_for so poe um erro generico ("Flow step is
+  # invalid") no pai — junta as mensagens de verdade dos passos filhos tambem.
+  def nested_errors(flow)
+    step_errors = flow.flow_steps.flat_map do |step|
+      step.errors.full_messages.map { |m| "Passo #{step.position}: #{m}" }
+    end
+    (flow.errors.full_messages + step_errors).uniq
   end
 
   def flow_json(flow)

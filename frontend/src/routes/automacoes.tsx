@@ -450,6 +450,10 @@ function Automations() {
                       value={form.public_reply_template}
                       onChange={(e) => setForm((f) => ({ ...f, public_reply_template: e.target.value }))}
                     />
+                    <p className="text-xs text-muted-foreground">
+                      Use <code className="rounded bg-muted px-1 py-0.5">{"{{nome}}"}</code> pra puxar o
+                      @usuário de quem comentou.
+                    </p>
                   </div>
                 </>
               ) : (
@@ -517,6 +521,10 @@ function Automations() {
                     value={form.private_reply_template}
                     onChange={(e) => setForm((f) => ({ ...f, private_reply_template: e.target.value }))}
                   />
+                  <p className="text-xs text-muted-foreground">
+                    Use <code className="rounded bg-muted px-1 py-0.5">{"{{nome}}"}</code> pra puxar o
+                    @usuário de quem comentou.
+                  </p>
                 </div>
               )}
               <div className="flex items-center justify-between rounded-xl border border-border p-3">

@@ -66,28 +66,33 @@ class FlowRunner
 
   def send_step(step, conversation)
     igsid = conversation.contact.igsid
+    text = MessageTemplate.render(step.message_text, conversation.contact.username)
 
+    # Passo de botoes sem nenhuma opcao cadastrada (dado invalido, ex: fluxo
+    # salvo sem terminar de configurar) quebraria a chamada da Meta ("too few
+    # elements") e travaria a conversa — manda como texto simples em vez de
+    # falhar silenciosamente.
     response =
-      if step.quick_replies?
+      if step.quick_replies? && step.flow_step_options.any?
         quick_replies = step.flow_step_options.map { |o| { title: o.label, payload: option_payload(o) } }
         @client.send_message_with_quick_replies(
           ig_user_id: @instagram_account.ig_user_id,
           recipient_igsid: igsid,
-          text: step.message_text,
+          text: text,
           quick_replies: quick_replies
         )
       else
         @client.send_message(
           ig_user_id: @instagram_account.ig_user_id,
           recipient_igsid: igsid,
-          text: step.message_text
+          text: text
         )
       end
 
     conversation.messages.create!(
       source_id: response["message_id"],
       direction: :outbound,
-      body: step.message_text,
+      body: text,
       is_echo: false,
       sent_at: Time.current
     )

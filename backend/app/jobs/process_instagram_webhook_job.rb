@@ -123,22 +123,24 @@ class ProcessInstagramWebhookJob < ApplicationJob
     client = Instagram::GraphClient.new(access_token: instagram_account.access_token)
 
     if rule.public_reply_template.present?
-      client.reply_to_comment(comment_id: comment.comment_id, text: rule.public_reply_template)
+      text = MessageTemplate.render(rule.public_reply_template, comment.commenter_username)
+      client.reply_to_comment(comment_id: comment.comment_id, text: text)
       comment.update!(replied_publicly: true)
     end
 
     if rule.flow.present?
       contact = find_or_create_contact(instagram_account, comment.commenter_igsid)
       conversation = Conversation.find_or_create_by!(account: instagram_account.account, contact: contact) do |c|
-      c.instagram_account = instagram_account
-    end
+        c.instagram_account = instagram_account
+      end
       FlowRunner.new(instagram_account).start(rule.flow, conversation, comment: comment)
       comment.update!(replied_privately: true)
     elsif rule.private_reply_template.present?
+      text = MessageTemplate.render(rule.private_reply_template, comment.commenter_username)
       client.send_private_reply_to_comment(
         ig_user_id: instagram_account.ig_user_id,
         comment_id: comment.comment_id,
-        text: rule.private_reply_template
+        text: text
       )
       comment.update!(replied_privately: true)
     end

@@ -116,6 +116,12 @@ function Manual() {
               Se duas regras poderiam disparar pro mesmo comentário, a que está travada num post específico
               sempre ganha da regra genérica.
             </p>
+            <p>
+              <strong>Variável de nome:</strong> em qualquer texto de resposta (pública, DM privada, ou dentro
+              de um passo de Fluxo), escreva <code className="rounded bg-muted px-1 py-0.5">{"{{nome}}"}</code>{" "}
+              que o Auto Instagram substitui pelo @usuário de quem comentou/mandou a mensagem na hora de
+              enviar. Ex: "Oi {"{{nome}}"}, vi seu comentário!" vira "Oi @joaosilva, vi seu comentário!".
+            </p>
           </Section>
 
           <Section id="referral" title="3. Automação por link (referral)">
@@ -152,6 +158,11 @@ function Manual() {
                 resposta da pessoa.
               </li>
             </ul>
+            <p>
+              Todo passo de <strong>Botões</strong> precisa de pelo menos um botão de verdade (com texto
+              preenchido) — se salvar um passo de botões vazio, o Auto Instagram bloqueia e avisa o erro na
+              tela.
+            </p>
             <p>
               Depois de montado, o fluxo só entra em ação quando ligado a uma automação (comentário ou link) —
               ele mesmo não dispara sozinho.
