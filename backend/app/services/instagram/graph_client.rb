@@ -115,10 +115,18 @@ module Instagram
     end
 
     # --- DM privada em resposta a um comentario (janela de tempo limitada pela Meta) ---
-    def send_private_reply_to_comment(ig_user_id:, comment_id:, text:)
+    # Precisa ser usada pro PRIMEIRO envio de um fluxo disparado por comentario:
+    # o envio generico (send_message, por igsid) exige que a pessoa ja tenha
+    # mandado DM antes, o que nunca aconteceu pra quem so comentou.
+    def send_private_reply_to_comment(ig_user_id:, comment_id:, text:, quick_replies: nil)
+      message = { text: text }
+      if quick_replies.present?
+        message[:quick_replies] = quick_replies.map { |qr| { content_type: "text", title: qr[:title], payload: qr[:payload] } }
+      end
+
       post_authenticated("#{ig_user_id}/messages", {
         recipient: { comment_id: comment_id },
-        message: { text: text }
+        message: message
       })
     end
 

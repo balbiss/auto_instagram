@@ -16,7 +16,10 @@ class FlowRunner
     session = FlowSession.find_or_initialize_by(flow: flow, conversation: conversation)
     session.update!(status: :active, current_step_id: first_step.id, data: {}, comment: comment)
 
-    send_step(first_step, conversation)
+    # So o primeiro envio de um fluxo iniciado por comentario precisa ir pela
+    # API de resposta privada (recipient: comment_id) — ela e isenta da janela
+    # padrao de 24h que o envio generico exige (a pessoa nunca mandou DM ainda).
+    send_step(first_step, conversation, comment: comment)
   end
 
   # Processa a resposta do lead pra uma sessao ja ativa e avanca pro proximo passo.
@@ -64,7 +67,7 @@ class FlowRunner
     send_step(next_step, conversation)
   end
 
-  def send_step(step, conversation)
+  def send_step(step, conversation, comment: nil)
     igsid = conversation.contact.igsid
     text = MessageTemplate.render(step.message_text, conversation.contact.username)
 
@@ -72,9 +75,20 @@ class FlowRunner
     # salvo sem terminar de configurar) quebraria a chamada da Meta ("too few
     # elements") e travaria a conversa — manda como texto simples em vez de
     # falhar silenciosamente.
-    response =
+    quick_replies =
       if step.quick_replies? && step.flow_step_options.any?
-        quick_replies = step.flow_step_options.map { |o| { title: o.label, payload: option_payload(o) } }
+        step.flow_step_options.map { |o| { title: o.label, payload: option_payload(o) } }
+      end
+
+    response =
+      if comment.present?
+        @client.send_private_reply_to_comment(
+          ig_user_id: @instagram_account.ig_user_id,
+          comment_id: comment.comment_id,
+          text: text,
+          quick_replies: quick_replies
+        )
+      elsif quick_replies.present?
         @client.send_message_with_quick_replies(
           ig_user_id: @instagram_account.ig_user_id,
           recipient_igsid: igsid,
