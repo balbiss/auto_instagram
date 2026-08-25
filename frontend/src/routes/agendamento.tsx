@@ -75,6 +75,13 @@ type FormValues = {
   file: File | null;
 };
 
+// datetime-local usa hora LOCAL do navegador — toISOString() converte pra UTC
+// e desalinha o "min"/valor enviado quando o fuso não é UTC (ex: Brasil).
+function toLocalInputValue(date: Date) {
+  const pad = (n: number) => String(n).padStart(2, "0");
+  return `${date.getFullYear()}-${pad(date.getMonth() + 1)}-${pad(date.getDate())}T${pad(date.getHours())}:${pad(date.getMinutes())}`;
+}
+
 const emptyForm: FormValues = {
   instagram_account_id: null,
   caption: "",
@@ -133,7 +140,10 @@ function Schedule() {
       if (values.instagram_account_id) body.set("scheduled_post[instagram_account_id]", String(values.instagram_account_id));
       body.set("scheduled_post[caption]", values.caption);
       body.set("scheduled_post[post_type]", values.post_type);
-      body.set("scheduled_post[scheduled_for]", values.scheduled_for);
+      // values.scheduled_for é "YYYY-MM-DDTHH:mm" em hora local — new Date(...)
+      // interpreta como local e toISOString() converte pra UTC de verdade,
+      // pra não depender do fuso configurado no servidor.
+      body.set("scheduled_post[scheduled_for]", new Date(values.scheduled_for).toISOString());
       if (values.file) body.set("scheduled_post[media]", values.file);
 
       const res = await authFetch("/scheduled_posts", { method: "POST", body });
@@ -311,7 +321,7 @@ function Schedule() {
                   id="post-datetime"
                   type="datetime-local"
                   required
-                  min={new Date().toISOString().slice(0, 16)}
+                  min={toLocalInputValue(new Date())}
                   className="h-9 w-full rounded-md border border-input bg-background px-2 text-sm"
                   value={form.scheduled_for}
                   onChange={(e) => setForm((f) => ({ ...f, scheduled_for: e.target.value }))}
