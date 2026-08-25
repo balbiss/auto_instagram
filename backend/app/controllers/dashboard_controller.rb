@@ -10,7 +10,9 @@ class DashboardController < ApplicationController
         .where(direction: :outbound, created_at: today)
         .count,
       connected_accounts: current_account.instagram_accounts.count,
-      posts_scheduled: 0,
+      posts_scheduled: current_account.scheduled_posts.scheduled.count,
+      posts_published_today: current_account.scheduled_posts.published.where(updated_at: today).count,
+      posts_quota_limit: 50,
       new_followers_today: deltas.any? ? deltas.sum : nil
     }
   end

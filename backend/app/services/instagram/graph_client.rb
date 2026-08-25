@@ -134,6 +134,35 @@ module Instagram
       })
     end
 
+    # --- Publicacao de conteudo (feed/reels/stories) ---
+    # Fluxo oficial em 2 passos: cria um "container" com a URL publica da midia,
+    # espera processar (container_status), depois publica de fato.
+    # media_type: "IMAGE" | "VIDEO" | "REELS" | "STORIES" (STORIES aceita tanto
+    # image_url quanto video_url, por isso o video: precisa vir explicito).
+    def create_media_container(ig_user_id:, token:, media_url:, media_type:, video:, caption: nil)
+      body = { media_type: media_type, access_token: token }
+      body[video ? :video_url : :image_url] = media_url
+      body[:caption] = caption if caption.present? && media_type != "STORIES"
+
+      response = graph_connection.post("#{ig_user_id}/media") do |req|
+        req.headers["Content-Type"] = "application/json"
+        req.body = body.to_json
+      end
+      parse(response)
+    end
+
+    def container_status(container_id:, token:)
+      response = graph_connection.get(container_id.to_s) do |req|
+        req.params["fields"] = "status_code,status"
+        req.params["access_token"] = token
+      end
+      parse(response)
+    end
+
+    def publish_container(ig_user_id:, token:, creation_id:)
+      post_authenticated("#{ig_user_id}/media_publish", { creation_id: creation_id, access_token: token })
+    end
+
     private
 
     def post_authenticated(path, body)

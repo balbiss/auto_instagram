@@ -8,6 +8,7 @@ class Account < ApplicationRecord
   has_many :comments, dependent: :destroy
   has_many :automation_rules, dependent: :destroy
   has_many :flows, dependent: :destroy
+  has_many :scheduled_posts, dependent: :destroy
 
   validates :name, presence: true
 end

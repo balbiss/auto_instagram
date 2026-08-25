@@ -15,6 +15,7 @@ Rails.application.routes.draw do
 
   resources :automation_rules, only: [ :index, :create, :update, :destroy ]
   resources :flows, only: [ :index, :show, :create, :update, :destroy ]
+  resources :scheduled_posts, only: [ :index, :create, :update, :destroy ]
   resources :instagram_accounts, only: [ :index, :destroy ]
   get "instagram_accounts/media", to: "instagram_accounts#media"
   resources :conversations, only: [ :index ] do

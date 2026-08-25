@@ -13,10 +13,19 @@ import {
   BookOpen,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
+import { useQuery } from "@tanstack/react-query";
 import { BrandLogo } from "@/components/brand";
 import { Button } from "@/components/ui/button";
 import { cn } from "@/lib/utils";
-import { getEmail, isAuthenticated, signOut } from "@/lib/api";
+import { getEmail, isAuthenticated, signOut, authFetch } from "@/lib/api";
+
+type QuotaSummary = { posts_published_today: number; posts_quota_limit: number };
+
+async function fetchQuota(): Promise<QuotaSummary> {
+  const res = await authFetch("/dashboard/summary");
+  if (!res.ok) throw new Error("Falha ao carregar cota");
+  return res.json();
+}
 
 const nav = [
   { to: "/", label: "Dashboard", icon: LayoutDashboard },
@@ -53,14 +62,21 @@ function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
 }
 
 function QuotaBadge() {
+  const { data } = useQuery({ queryKey: ["dashboard", "summary"], queryFn: fetchQuota, refetchInterval: 30000 });
+  const used = data?.posts_published_today ?? 0;
+  const limit = data?.posts_quota_limit ?? 50;
+  const pct = Math.min(100, Math.round((used / limit) * 100));
+
   return (
     <div className="rounded-xl border border-border bg-background/60 p-3">
       <div className="flex items-baseline justify-between">
         <p className="text-xs font-medium text-muted-foreground">Cota diária</p>
-        <p className="text-xs font-semibold">0/25</p>
+        <p className="text-xs font-semibold">
+          {used}/{limit}
+        </p>
       </div>
       <div className="mt-2 h-1.5 overflow-hidden rounded-full bg-muted">
-        <div className="h-full w-0 rounded-full bg-gradient-brand" />
+        <div className="h-full rounded-full bg-gradient-brand" style={{ width: `${pct}%` }} />
       </div>
       <p className="mt-2 text-[11px] text-muted-foreground">Posts publicados hoje</p>
     </div>

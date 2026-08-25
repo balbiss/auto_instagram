@@ -10,7 +10,7 @@
 #
 # It's strongly recommended that you check this file into your version control system.
 
-ActiveRecord::Schema[8.1].define(version: 2026_08_25_130139) do
+ActiveRecord::Schema[8.1].define(version: 2026_08_25_150643) do
   # These are extensions that must be enabled in order to support this database
   enable_extension "pg_catalog.plpgsql"
 
@@ -202,6 +202,23 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_130139) do
     t.index ["source_id"], name: "index_messages_on_source_id", unique: true
   end
 
+  create_table "scheduled_posts", force: :cascade do |t|
+    t.bigint "account_id", null: false
+    t.text "caption"
+    t.string "container_id"
+    t.datetime "created_at", null: false
+    t.text "error_message"
+    t.string "ig_media_id"
+    t.bigint "instagram_account_id", null: false
+    t.integer "post_type", default: 0, null: false
+    t.datetime "scheduled_for", null: false
+    t.integer "status", default: 0, null: false
+    t.datetime "updated_at", null: false
+    t.index ["account_id"], name: "index_scheduled_posts_on_account_id"
+    t.index ["instagram_account_id"], name: "index_scheduled_posts_on_instagram_account_id"
+    t.index ["status", "scheduled_for"], name: "index_scheduled_posts_on_status_and_scheduled_for"
+  end
+
   create_table "solid_queue_batch_executions", force: :cascade do |t|
     t.bigint "batch_id", null: false
     t.datetime "created_at", null: false
@@ -388,6 +405,8 @@ ActiveRecord::Schema[8.1].define(version: 2026_08_25_130139) do
   add_foreign_key "follower_snapshots", "instagram_accounts"
   add_foreign_key "instagram_accounts", "accounts"
   add_foreign_key "messages", "conversations"
+  add_foreign_key "scheduled_posts", "accounts"
+  add_foreign_key "scheduled_posts", "instagram_accounts"
   add_foreign_key "solid_queue_batch_executions", "solid_queue_batches", column: "batch_id", on_delete: :cascade
   add_foreign_key "solid_queue_batch_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade
   add_foreign_key "solid_queue_blocked_executions", "solid_queue_jobs", column: "job_id", on_delete: :cascade

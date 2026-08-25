@@ -18,8 +18,9 @@ Rails.application.configure do
   # Enable serving of images, stylesheets, and JavaScripts from an asset server.
   # config.asset_host = "http://assets.example.com"
 
-  # Store uploaded files on the local file system (see config/storage.yml for options).
-  config.active_storage.service = :local
+  # Mídia (anexos de DM, posts agendados) precisa de URL pública pra Meta buscar —
+  # disco local do container não serve (não sobrevive redeploy nem escala entre réplicas).
+  config.active_storage.service = :minio
 
   # Traefik termina TLS na frente e encaminha em HTTP com X-Forwarded-Proto — sem
   # assume_ssl o force_ssl entraria em loop de redirect (Rails acha que a requisição

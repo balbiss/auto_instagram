@@ -1,7 +1,7 @@
 class InstagramOauthController < ApplicationController
   skip_before_action :authenticate_user!, only: [ :callback ]
 
-  SCOPES = "instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments".freeze
+  SCOPES = "instagram_business_basic,instagram_business_manage_messages,instagram_business_manage_comments,instagram_business_content_publish".freeze
 
   # GET /instagram_oauth/authorize_url
   def authorize_url
