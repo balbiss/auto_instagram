@@ -10,6 +10,7 @@ import {
   LogOut,
   Workflow,
   Database,
+  BookOpen,
 } from "lucide-react";
 import { useEffect, useState, type ReactNode } from "react";
 import { BrandLogo } from "@/components/brand";
@@ -25,6 +26,7 @@ const nav = [
   { to: "/agendamento", label: "Agendamento", icon: CalendarClock },
   { to: "/conectar", label: "Conectar conta", icon: Plug },
   { to: "/configuracoes", label: "Configurações", icon: Settings },
+  { to: "/manual", label: "Manual", icon: BookOpen },
 ] as const;
 
 function NavLinks({ onNavigate }: { onNavigate?: () => void }) {
